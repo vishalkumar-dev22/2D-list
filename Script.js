@@ -1,3 +1,5 @@
+
+// Select DOM elements
 const taskInput = document.getElementById('taskInput');
 const addBtn = document.getElementById('addBtn');
 const taskList = document.getElementById('taskList');
@@ -25,12 +27,15 @@ function renderTasks() {
       li.classList.add('completed');
     }
 
+    // Attach data attribute to track task index securely
+    li.dataset.index = index;
+
     li.innerHTML = `
-      <div class="task-content" onclick="toggleTask(${index})">
-        <input type="checkbox" ${task.completed ? 'checked' : ''}>
+      <div class="task-content">
+        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
         <span>${escapeHTML(task.text)}</span>
       </div>
-      <button class="delete-btn" onclick="deleteTask(${index})">Delete</button>
+      <button class="delete-btn">Delete</button>
     `;
 
     taskList.appendChild(li);
@@ -48,21 +53,30 @@ function addTask() {
   renderTasks();
 }
 
-// Toggle complete task status
-function toggleTask(index) {
-  tasks[index].completed = !tasks[index].completed;
-  saveTasks();
-  renderTasks();
-}
+// Handle task clicks (Toggle complete vs Delete) using Event Delegation
+taskList.addEventListener('click', (e) => {
+  const li = e.target.closest('li');
+  if (!li) return;
 
-// Delete task
-function deleteTask(index) {
-  tasks.splice(index, 1);
-  saveTasks();
-  renderTasks();
-}
+  const index = parseInt(li.dataset.index, 10);
 
-// Sanitize user input
+  // Delete button clicked
+  if (e.target.classList.contains('delete-btn')) {
+    tasks.splice(index, 1);
+    saveTasks();
+    renderTasks();
+    return;
+  }
+
+  // Task row or checkbox clicked
+  if (e.target.classList.contains('task-checkbox') || e.target.closest('.task-content')) {
+    tasks[index].completed = !tasks[index].completed;
+    saveTasks();
+    renderTasks();
+  }
+});
+
+// Sanitize user inputs against XSS
 function escapeHTML(str) {
   return str.replace(/[&<>'"]/g, 
     tag => ({
@@ -75,7 +89,7 @@ function escapeHTML(str) {
   );
 }
 
-// Event Listeners
+// Event Listeners for adding tasks
 addBtn.addEventListener('click', addTask);
 
 taskInput.addEventListener('keydown', (e) => {
