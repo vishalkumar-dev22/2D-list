@@ -1,102 +1,138 @@
-
-// Select DOM elements
-const taskInput = document.getElementById('taskInput');
-const addBtn = document.getElementById('addBtn');
-const taskList = document.getElementById('taskList');
-
-// Load tasks from LocalStorage
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-
-// Save tasks to LocalStorage
-function saveTasks() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-// Render tasks to the UI
-function renderTasks() {
-  taskList.innerHTML = '';
+body {
+    font-family: Arial, sans-serif;
+    background: #eef3f8;
+    min-height: 100vh;
+    padding: 40px 20px;
+}
 
-  if (tasks.length === 0) {
-    taskList.innerHTML = '<p class="empty-state">No tasks available. Add one above!</p>';
-    return;
-  }
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
 
-  tasks.forEach((task, index) => {
-    const li = document.createElement('li');
-    if (task.completed) {
-      li.classList.add('completed');
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #1d3557;
+}
+
+.input-box {
+    display: flex;
+    gap: 10px;
+}
+
+#taskInput {
+    flex: 1;
+    padding: 13px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 10px 15px;
+}
+
+#addBtn {
+    background: #1d4ed8;
+    color: white;
+}
+
+.filters {
+    display: flex;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.filter {
+    background: #e5e7eb;
+}
+
+.filter.active {
+    background: #1d4ed8;
+    color: white;
+}
+
+#taskList {
+    list-style: none;
+}
+
+.task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    background: #f5f7fa;
+    border-radius: 8px;
+}
+
+.task-text {
+    flex: 1;
+    font-size: 16px;
+}
+
+.task.completed .task-text {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.edit-btn {
+    background: #f59e0b;
+    color: white;
+}
+
+.delete-btn {
+    background: #dc2626;
+    color: white;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+#clearBtn {
+    background: #374151;
+    color: white;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}
+
+@media (max-width: 500px) {
+    .input-box {
+        flex-direction: column;
     }
 
-    // Attach data attribute to track task index securely
-    li.dataset.index = index;
+    #addBtn {
+        width: 100%;
+    }
 
-    li.innerHTML = `
-      <div class="task-content">
-        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
-        <span>${escapeHTML(task.text)}</span>
-      </div>
-      <button class="delete-btn">Delete</button>
-    `;
+    .task {
+        flex-wrap: wrap;
+    }
 
-    taskList.appendChild(li);
-  });
+    .footer {
+        flex-direction: column;
+        gap: 12px;
+    }
 }
-
-// Add new task
-function addTask() {
-  const text = taskInput.value.trim();
-  if (text === '') return;
-
-  tasks.push({ text: text, completed: false });
-  taskInput.value = '';
-  saveTasks();
-  renderTasks();
-}
-
-// Handle task clicks (Toggle complete vs Delete) using Event Delegation
-taskList.addEventListener('click', (e) => {
-  const li = e.target.closest('li');
-  if (!li) return;
-
-  const index = parseInt(li.dataset.index, 10);
-
-  // Delete button clicked
-  if (e.target.classList.contains('delete-btn')) {
-    tasks.splice(index, 1);
-    saveTasks();
-    renderTasks();
-    return;
-  }
-
-  // Task row or checkbox clicked
-  if (e.target.classList.contains('task-checkbox') || e.target.closest('.task-content')) {
-    tasks[index].completed = !tasks[index].completed;
-    saveTasks();
-    renderTasks();
-  }
-});
-
-// Sanitize user inputs against XSS
-function escapeHTML(str) {
-  return str.replace(/[&<>'"]/g, 
-    tag => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    }[tag] || tag)
-  );
-}
-
-// Event Listeners for adding tasks
-addBtn.addEventListener('click', addTask);
-
-taskInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    addTask();
-  }
-});
-
-// Initial load
-renderTasks();
